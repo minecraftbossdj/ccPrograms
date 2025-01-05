@@ -5,6 +5,8 @@ shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/ref
 fs.makeDir("AweOS/APIs/")
 shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/AweOS/AweOS/AweOS/APIs/roundAPI.lua AweOS/APIs/roundAPI.lua")
 shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/AweOS/AweOS/AweOS/APIs/sha2.lua AweOS/APIs/sha2.lua")
+shell.run("wget https://raw.githubusercontent.com/NullHarp/misc-cc-tweaked-programs/refs/heads/main/API/buttonAPI.lua AweOS/APIs/buttonAPI.lua")
+shell.run("wget https://raw.githubusercontent.com/NullHarp/misc-cc-tweaked-programs/refs/heads/main/API/windowAPI.lua AweOS/APIs/windowAPI.lua")
 
 --configs
 fs.makeDir("AweOS/configs/")
