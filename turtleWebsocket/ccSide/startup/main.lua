@@ -40,6 +40,8 @@ function main()
                             peripheral=peripheral,
                             turtle=turtle,
                             print=print,
+                            pairs=pairs,
+                            textutils=textutils,
                             os={
                                 getComputerID=os.getComputerID,
                                 getComputerLabel=os.getComputerLabel
