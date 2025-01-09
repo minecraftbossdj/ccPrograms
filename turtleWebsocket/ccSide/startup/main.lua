@@ -45,6 +45,10 @@ function main()
                             os={
                                 getComputerID=os.getComputerID,
                                 getComputerLabel=os.getComputerLabel
+                            },
+                            shell={
+                                openTab=shell.openTab,
+                                switchTab=shell.switchTab
                             }
                         }
                     )
