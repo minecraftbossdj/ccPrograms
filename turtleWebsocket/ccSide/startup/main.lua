@@ -39,6 +39,7 @@ function main()
                         {
                             peripheral=peripheral,
                             turtle=turtle,
+                            print=print,
                             os={
                                 getComputerID=os.getComputerID,
                                 getComputerLabel=os.getComputerLabel
