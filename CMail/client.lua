@@ -140,10 +140,10 @@ function mailClick(tbl)
                 message:draw()
                 term.setBackgroundColor(colors.black)
                 term.setCursorPos(dividerX+1,1)
-                term.write("                     ")
+                term.write("                ")
                 term.setCursorPos(dividerX+1,1)
                 term.setBackgroundColor(colors.lightGray)
-                term.write("Sent: "..selectedMail.time.month.."/"..selectedMail.time.day.."/"..selectedMail.time.year.." "..selectedMail.time.hour..":"..selectedMail.time.min)
+                term.write(selectedMail.time.month.."/"..selectedMail.time.day.."/"..selectedMail.time.year.." "..selectedMail.time.hour..":"..selectedMail.time.min)
                 drawMail(tbl,pressed,selectedMail)
             end
         end
