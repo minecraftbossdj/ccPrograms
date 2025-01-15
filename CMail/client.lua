@@ -55,15 +55,20 @@ function setup()
     renderText(true)
     
 
-    send = button.newButton(term.native(),"maingui",x-3,y,"Send","send",colors.lime,colors.black,colors.green,false,4,0)
-    cancel = button.newButton(term.native(),"maingui",x-9,y,"Cancel","cancel",colors.red,colors.black,colors.gray,false,5,0)
+    send = button.newButton(term.native(),"mailButtons",x-3,y,"Send","send",colors.lime,colors.black,colors.green,false,4,0)
+    cancel = button.newButton(term.native(),"mailButtons",x-10,y,"Cancel","cancel",colors.red,colors.black,colors.gray,false,5,0)
     new = button.newButton(term.native(),"maingui",x-2,1,"New","new",colors.lightBlue,colors.black,colors.blue,false,3,0)
-    refresh = button.newButton(term.native(),"maingui",1,y,"Refresh","refresh",colors.blue,colors.white,colors.gray,false,7,0)
-
+    if pocket then
+        refresh = button.newButton(term.native(),"maingui",1,y,"Ref","refresh",colors.blue,colors.white,colors.gray,false,3,0)
+    else
+        refresh = button.newButton(term.native(),"maingui",1,y,"Refresh","refresh",colors.blue,colors.white,colors.gray,false,7,0)
+    end
 
     button.drawButtons("maingui")
+    if edit then
+        button.drawButtons("mailButtons")
+    end
 
-    paintutils.drawLine(8,y,dividerX,y,colors.gray)
 
     local pos = 1
     for i=1,y/3 do
@@ -101,13 +106,9 @@ function drawMail(tbl,pressed,selectedTbl)
             term.setTextColor(colors.white)
         end
     end
-    paintutils.drawLine(8,y,dividerX,y,colors.gray)
     term.setBackgroundColor(colors.black)
     for i=1,y do 
         term.setCursorPos(x/4,i)
-        if i == y then
-            term.setBackgroundColor(colors.gray)
-        end
         term.write("\149")
     end
     local x, y = term.getSize()
@@ -188,10 +189,16 @@ end
 function ClickGUI()
     while true do
         button.drawButtons("maingui")
+        if edit then
+            button.drawButtons("mailButtons")
+        end
         local event, click, x, y = os.pullEvent("mouse_click")
         pressed = button.processButtons(x,y,"maingui",term.native())
         pressed = pressed or ""
         button.drawButtons("maingui")
+        if edit then
+            button.drawButtons("mailButtons")
+        end
         if pressed == "new" and not edit then
             edit = true
             renderText()
@@ -202,7 +209,6 @@ function ClickGUI()
             Title:draw()
             message:draw()
             local x,y = term.getSize()
-            paintutils.drawLine(dividerX+1,1,x-4,1,colors.black)
         end
         if pressed == "send" and edit then
             edit = false
@@ -235,6 +241,54 @@ function ClickGUI()
             tbl = cmail.requestMail()
             drawMail(tbl)
             oldtbl = tbl
+        end
+
+        sleep(0)
+    end
+end
+
+function ClickEditGUI()
+    local redrawed = false
+    while true do
+        if edit then
+            redrawed = false
+            button.drawButtons("mailButtons")
+            local event, click, x, y = os.pullEvent("mouse_click")
+            pressed = button.processButtons(x,y,"mailButtons",term.native())
+            pressed = pressed or ""
+            button.drawButtons("mailButtons")
+
+            if pressed == "send" and edit then
+                edit = false
+                cmail.sendEmail(message.text,address.text,Title.text)
+                address.text = ""
+                Title.text = ""
+                message.text = ""
+                address:draw()
+                Title:draw()
+                message:draw()
+                address.isSelected = false
+                Title.isSelected = false
+                message.isSelected = false
+                renderText(true)
+            end
+            if pressed == "cancel" and edit then
+                edit = false
+                address.text = ""
+                Title.text = ""
+                message.text = ""
+                address:draw()
+                Title:draw()
+                message:draw()
+                address.isSelected = false
+                Title.isSelected = false
+                message.isSelected = false
+                renderText(true)
+            end
+        elseif not redrawed then
+            local x, y = term.getSize()
+            paintutils.drawLine(x-10,y,x,y,colors.black)
+            redrawed = true
         end
 
         sleep(0)
@@ -387,4 +441,4 @@ end
 setup()
 
 
-parallel.waitForAll(main,scroll,ClickGUI,textBoxes)
+parallel.waitForAll(main,scroll,ClickGUI,ClickEditGUI,textBoxes)
