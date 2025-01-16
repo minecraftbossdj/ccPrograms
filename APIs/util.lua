@@ -88,8 +88,10 @@ end
 
 --titles n shit
 function API.title(name,version)
+    term.setTextColor(colors.yellow)
     term.setCursorPos(1,1)
     term.write("AW3S0FT - "..name.." | "..version.. " | ID: "..os.getComputerID())
+    term.setTextColor(colors.white)
 end
 
 --lazy shit, you can judge me for this, idrc
