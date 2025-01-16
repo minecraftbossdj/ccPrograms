@@ -40,7 +40,7 @@ end
 function setup()
     term.clear()
     local x, y = term.getSize()
-    dividerX = x/4
+    dividerX = math.floor(x/4)
     for i=1,y do 
         term.setCursorPos(x/4,i)
         term.write("\149")
