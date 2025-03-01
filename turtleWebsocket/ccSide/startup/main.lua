@@ -34,7 +34,7 @@ function main()
         if tbl["type"] ~= nil then
             if tbl["type"] == "function" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
-                    af=loadstring(tbl["msg"])
+                    af=loadstring("result = "..tbl["msg"])
                     setfenv(af,
                         {
                             peripheral=peripheral,
@@ -44,7 +44,8 @@ function main()
                             textutils=textutils,
                             os={
                                 getComputerID=os.getComputerID,
-                                getComputerLabel=os.getComputerLabel
+                                getComputerLabel=os.getComputerLabel,
+                                reboot=os.reboot
                             },
                             shell={
                                 openTab=shell.openTab,
@@ -53,6 +54,10 @@ function main()
                         }
                     )
                     af()
+                    resultTbl = {}
+                    resultTbl["type"] = "result"
+                    resultTbl["msg"] = result
+                    _G.WS2.send(textutils.serialiseJSON(resultTbl))
                 end
             elseif tbl["type"] == "refreshInv" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
