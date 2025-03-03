@@ -46,6 +46,11 @@ function inspect()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
+local result = nil
+function setResult(value)
+    result = value
+end
+
 function main()
     term.write(os.getComputerLabel().." | ID: "..os.getComputerID())
     while true do
@@ -57,6 +62,7 @@ function main()
                     af=loadstring("result = "..tbl["msg"])
                     setfenv(af,
                         {
+                            setResult=setResult,
                             peripheral=peripheral,
                             turtle=turtle,
                             print=print,
@@ -74,18 +80,24 @@ function main()
                         }
                     )
                     af()
-                    resultTbl = {}
+                    local resultTbl = {}
                     resultTbl["type"] = "result"
                     resultTbl["msg"] = result
+                    resultTbl["id"] = os.getComputerID()
+                    result = nil
                     _G.WS2.send(textutils.serialiseJSON(resultTbl))
                 end
             elseif tbl["type"] == "refreshInv" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
-                    inv()
+                    if turtle then
+                        inv()
+                    end
                 end
             elseif tbl["type"] == "refreshInspect" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
-                    inspect()
+                    if turtle then
+                        inspect()
+                    end
                 end
             end
         end
