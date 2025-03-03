@@ -26,6 +26,26 @@ function inv()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
+function inspect()
+    tbl = {}
+    tbl["type"] = "inspect"
+    tbl["id"] = os.getComputerID()
+    local bool, turtleInspect = turtle.inspect()
+    local boolUp, turtleInspectUp = turtle.inspectUp()
+    local boolDown, turtleInspectDown = turtle.inspectDown()
+    if bool then
+        tbl["forward"] = turtleInspect.name
+    end
+    if boolUp then
+        tbl["up"] = turtleInspectUp.name
+    end
+    if boolDown then
+        tbl["Down"] = turtleInspectDown.name
+    end
+    
+    _G.WS2.send(textutils.serialiseJSON(tbl))
+end
+
 function main()
     term.write(os.getComputerLabel().." | ID: "..os.getComputerID())
     while true do
@@ -62,6 +82,10 @@ function main()
             elseif tbl["type"] == "refreshInv" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
                     inv()
+                end
+            elseif tbl["type"] == "refreshInspect" then
+                if tonumber(tbl["id"]) == os.getComputerID() then
+                    inspect()
                 end
             end
         end
