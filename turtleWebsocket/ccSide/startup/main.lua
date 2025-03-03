@@ -12,7 +12,7 @@ end
 shell.run(".rom/printOverwrite.lua")
 
 function inv()
-    tbl = {}
+    local tbl = {}
     tbl["type"] = "inventory"
     tbl["id"] = os.getComputerID()
     for i=1,16 do
@@ -27,7 +27,7 @@ function inv()
 end
 
 function inspect()
-    tbl = {}
+    local tbl = {}
     tbl["type"] = "inspect"
     tbl["id"] = os.getComputerID()
     local bool, turtleInspect = turtle.inspect()
@@ -40,7 +40,7 @@ function inspect()
         tbl["up"] = turtleInspectUp.name
     end
     if boolDown then
-        tbl["Down"] = turtleInspectDown.name
+        tbl["down"] = turtleInspectDown.name
     end
     
     _G.WS2.send(textutils.serialiseJSON(tbl))
