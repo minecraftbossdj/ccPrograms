@@ -59,7 +59,7 @@ function main()
         if tbl["type"] ~= nil then
             if tbl["type"] == "function" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
-                    af=loadstring("result = "..tbl["msg"])
+                    af=loadstring("setResult("..tbl["msg"]..")")
                     setfenv(af,
                         {
                             setResult=setResult,
