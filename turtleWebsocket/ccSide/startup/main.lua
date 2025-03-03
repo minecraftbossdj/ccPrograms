@@ -46,10 +46,6 @@ function inspect()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
-local result = nil
-function setResult(value)
-    result = value
-end
 
 function main()
     term.write(os.getComputerLabel().." | ID: "..os.getComputerID())
@@ -59,10 +55,9 @@ function main()
         if tbl["type"] ~= nil then
             if tbl["type"] == "function" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
-                    af=loadstring("setResult("..tbl["msg"]..")")
+                    af=loadstring("return "..tbl["msg"])
                     setfenv(af,
                         {
-                            setResult=setResult,
                             peripheral=peripheral,
                             turtle=turtle,
                             print=print,
@@ -79,10 +74,11 @@ function main()
                             }
                         }
                     )
-                    af()
+                    local result1,result2 = af()
                     local resultTbl = {}
                     resultTbl["type"] = "result"
-                    resultTbl["msg"] = result
+                    resultTbl["resultOne"] = result1
+                    resultTbl["resultTwo"] = result2
                     resultTbl["id"] = os.getComputerID()
                     result = nil
                     _G.WS2.send(textutils.serialiseJSON(resultTbl))
