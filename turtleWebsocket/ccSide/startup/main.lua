@@ -60,6 +60,8 @@ function main()
                         {
                             peripheral=peripheral,
                             turtle=turtle,
+                            android=android,
+                            drone=drone,
                             print=print,
                             pairs=pairs,
                             textutils=textutils,
