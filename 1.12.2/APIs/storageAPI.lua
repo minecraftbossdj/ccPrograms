@@ -189,7 +189,7 @@ local function updateItemIndex(updateDisplayNameIndex)
     executeCorutines(coroutines)
     if updateDisplayNameIndex then
         local function getName(chest,slot)
-            local details = chest.getItemDetail(slot)
+            local details = chest.getItemMeta(slot)
             if details then
                 displayNameIndex[details.name] = details.displayName
             end
@@ -249,7 +249,7 @@ local function findItem(item_name,count,fuzzySearch)
     for i = #item_index, 1, -1 do
         local item = item_index[i]
         if (item.name == item_name or (fuzzySearch and lev.levenshtein(item.name,item_name) < 3)) and item.count >= count then
-            local real_data = chests[item_index[i].chest_index].getItemDetail(item.slot)
+            local real_data = chests[item_index[i].chest_index].getItemMeta(item.slot)
             if real_data then
                 table.remove(item_index,i)
                 break
