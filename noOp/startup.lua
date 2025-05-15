@@ -69,7 +69,11 @@ while true do
 
         table.remove(wordsTable,1)
         for i=1,#wordsTable do
-           realcmd = realcmd.." "..wordsTable[i]
+            if realcmd = "" then
+                realcmd = wordsTable[i]
+            else 
+                realcmd = realcmd.." "..wordsTable[i]
+            end
         end
         exec(realcmd)
     end
