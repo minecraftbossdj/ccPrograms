@@ -11,6 +11,35 @@ end
 
 shell.run(".rom/printOverwrite.lua")
 
+
+local typeAPI = require(".rom/API/typeAPI")
+
+local config = require(".rom/API/configAPI")
+
+config.registerName(".rom/configs/hivemind-main")
+
+config.addConfigOption("version","v2.0.0")
+
+local hivemindVersion = config.getConfigOption("version")
+
+
+local pluginNames = fs.list("/plugins/")
+local plugins = {}
+
+
+if #pluginNames ~= 0 then
+    for i,v in pairs(pluginNames) do
+        pluginName = v:gsub("%.lua", "")
+        plugins[pluginName] = require("/plugins/"..pluginName)
+    end
+end
+
+for _,v in pairs(plugins) do
+    if type(v.init) == "function" then
+        v.init()
+    end
+end
+
 function inv()
     local tbl = {}
     tbl["type"] = "inventory"
@@ -23,6 +52,7 @@ function inv()
             tbl["slot_"..tostring(i)] = turtle.getItemDetail(i)
         end
     end
+    tbl["selectedSlot"] = turtle.getSelectedSlot()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
@@ -46,12 +76,20 @@ function inspect()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
-
 function main()
+    term.clear()
+    term.setCursorPos(1,1)
+    term.setTextColor(colors.yellow)
+    term.write("Turtle Hivemind "..hivemindVersion)
+    term.setCursorPos(1,2)
+    term.setTextColor(colors.white)
     term.write(os.getComputerLabel().." | ID: "..os.getComputerID())
+    term.setCursorPos(1,3)
+    term.write("Computer Type: "..typeAPI.getComputerFamily().." "..typeAPI.getComputerType())
+    term.setCursorPos(1,4)
     while true do
         fake = _G.WS.receive()
-        tbl = textutils.unserialiseJSON(fake)
+        local tbl = textutils.unserialiseJSON(fake)
         if tbl["type"] ~= nil then
             if tbl["type"] == "function" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
@@ -62,6 +100,7 @@ function main()
                             turtle=turtle,
                             android=android,
                             drone=drone,
+                            link=link,
                             print=print,
                             pairs=pairs,
                             textutils=textutils,
@@ -73,7 +112,9 @@ function main()
                             shell={
                                 openTab=shell.openTab,
                                 switchTab=shell.switchTab
-                            }
+                            },
+                            exec=exec,
+                            require=require
                         }
                     )
                     local result1,result2 = af()
@@ -83,6 +124,7 @@ function main()
                     resultTbl["resultTwo"] = result2
                     resultTbl["id"] = os.getComputerID()
                     result = nil
+
                     _G.WS2.send(textutils.serialiseJSON(resultTbl))
                 end
             elseif tbl["type"] == "refreshInv" then
@@ -97,6 +139,14 @@ function main()
                         inspect()
                     end
                 end
+            else
+                for _,v in pairs(plugins) do
+                    if tonumber(tbl["id"]) == os.getComputerID() then
+                        if type(v.WSReceive) == "function" then
+                            v.WSReceive(tbl)
+                        end
+                    end
+                end
             end
         end
         sleep(0)
@@ -107,7 +157,7 @@ function events()
     while true do
         event, arg1, arg2, arg3 = os.pullEvent()
         if event ~= "websocket_message" then
-            tbl = {}
+            local tbl = {}
             tbl["event"] = event
             tbl["arg1"] = arg1
             tbl["arg2"] = arg2
@@ -120,6 +170,11 @@ function events()
             end
             if event == "turtle_response" then
                 inv()
+            end
+            for _,v in pairs(plugins) do
+                if type(v.Event) == "function" then
+                    v.Event(event,arg1,arg2,arg3)
+                end
             end
         end
         
