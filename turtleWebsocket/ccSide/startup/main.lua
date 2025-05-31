@@ -12,11 +12,11 @@ end
 shell.run(".rom/printOverwrite.lua")
 
 
-local typeAPI = require(".rom/API/typeAPI")
+local typeAPI = require("/APIs/typeAPI")
 
-local config = require(".rom/API/configAPI")
+local config = require("/APIs/configAPI")
 
-config.registerName(".rom/configs/hivemind-main")
+config.registerName("configs/hivemind-main")
 
 config.addConfigOption("version","v2.0.0")
 
