@@ -20,8 +20,11 @@ config.registerName("configs/hivemind-main")
 
 config.addConfigOption("version","v2.0.0")
 
+config.addConfigOption("hiddenHivemind",false)
+
 local hivemindVersion = config.getConfigOption("version")
 
+local hiddenHivemindConfig = config.getConfigOption("hiddenHivemind")
 
 local pluginNames = fs.list("/plugins/")
 local plugins = {}
@@ -207,7 +210,7 @@ end
 function events()
     while true do
         event, arg1, arg2, arg3 = os.pullEvent()
-        if event ~= "websocket_message" and event ~= "timer" then
+        if event ~= "websocket_message" then
             local tbl = {}
             tbl["event"] = event
             tbl["arg1"] = arg1
@@ -244,7 +247,17 @@ function loop()
     end
 end
 
-parallel.waitForAny(main,events,loop)
---more code or somethin idfk i hate ni-
+function hiddenHivemind()
+    term.clear()
+    term.setCursorPos(1,1)
+    shell.run("shell")
+end
+
+if hiddenHivemindConfig then
+    parallel.waitForAny(main,events,loop,hiddenHivemind)
+else
+    parallel.waitForAny(main,events,loop)
+end
+--more code or somethin idfk
 
 os.pullEvent = oldPull
