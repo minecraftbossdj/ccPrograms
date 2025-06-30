@@ -40,6 +40,43 @@ for _,v in pairs(plugins) do
     end
 end
 
+function update()
+    local wsFile = fs.open(".rom/websocket.lua","r")
+    local wsFileData = wsFile.readAll()
+    wsFile.close()
+
+    fs.delete(".rom")
+    fs.delete("data")
+    fs.delete("startup")
+    fs.delete("plugins")
+    fs.delete("configs")
+
+    fs.makeDir(".rom")
+    fs.makeDir(".rom/API")
+    fs.makeDir("data")
+    fs.makeDir("startup")
+    fs.makeDir("plugins")
+    fs.makeDir("configs")
+
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/startup/main.lua startup/main.lua")
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/startup/test.lua startup/test.lua")
+
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/printOverwrite.lua .rom/printOverwrite.lua")
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/rename.lua .rom/rename.lua")
+
+    --apis
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/API/newPrintAPI.lua .rom/API/newPrintAPI.lua")
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/APIs/configAPI.lua APIs/configAPI.lua")
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/APIs/typeAPI.lua APIs/typeAPI.lua")
+
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/data/first_names.json data/first_names.json")
+    shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/data/last_names.json data/last_names.json")
+
+    local file = fs.open(".rom/websocket.lua","w")
+    file.write(wsFileData)
+    file.close()
+end
+
 function inv()
     local tbl = {}
     tbl["type"] = "inventory"
@@ -152,7 +189,7 @@ function main()
                     end
                 end
             elseif tbl["type"] == "update" then
-                shell.run(".rom/installer.lua autoInstaller")
+                update()
             else
                 for _,v in pairs(plugins) do
                     if tonumber(tbl["id"]) == os.getComputerID() then
