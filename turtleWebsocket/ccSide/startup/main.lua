@@ -88,7 +88,7 @@ function main()
     term.write("Computer Type: "..typeAPI.getComputerFamily().." "..typeAPI.getComputerType())
     term.setCursorPos(1,4)
     while true do
-        fake = _G.WS.receive()
+        local fake = _G.WS.receive()
         local tbl = textutils.unserialiseJSON(fake)
         if tbl["type"] ~= nil then
             if tbl["type"] == "function" then
@@ -96,13 +96,20 @@ function main()
                     af=loadstring("return "..tbl["msg"])
                     setfenv(af,
                         {
+                            pairs = pairs,
+                            ipairs = ipairs,
+                            print = print,
+                            tonumber = tonumber,
+                            tostring = tostring,
+                            type = type,
+                            math = math,
+                            string = string,
+                            table = table,
                             peripheral=peripheral,
                             turtle=turtle,
                             android=android,
                             drone=drone,
                             link=link,
-                            print=print,
-                            pairs=pairs,
                             textutils=textutils,
                             os={
                                 getComputerID=os.getComputerID,
@@ -117,15 +124,20 @@ function main()
                             require=require
                         }
                     )
-                    local result1,result2 = af()
-                    local resultTbl = {}
-                    resultTbl["type"] = "result"
-                    resultTbl["resultOne"] = result1
-                    resultTbl["resultTwo"] = result2
-                    resultTbl["id"] = os.getComputerID()
-                    result = nil
+                    local success, err = pcall(function()
+                        result1,result2 = af()
+                    end)
 
-                    _G.WS2.send(textutils.serialiseJSON(resultTbl))
+                    if success then
+                        local resultTbl = {}
+                        resultTbl["type"] = "result"
+                        resultTbl["resultOne"] = result1
+                        resultTbl["resultTwo"] = result2
+                        resultTbl["id"] = os.getComputerID()
+                        result = nil
+
+                        _G.WS2.send(textutils.serialiseJSON(resultTbl))
+                    end
                 end
             elseif tbl["type"] == "refreshInv" then
                 if tonumber(tbl["id"]) == os.getComputerID() then
@@ -139,6 +151,8 @@ function main()
                         inspect()
                     end
                 end
+            elseif tbl["type"] == "update" then
+                shell.run(".rom/installer.lua autoInstaller")
             else
                 for _,v in pairs(plugins) do
                     if tonumber(tbl["id"]) == os.getComputerID() then
@@ -182,7 +196,18 @@ function events()
     end
 end
 
-parallel.waitForAny(main,events)
+function loop()
+    while true do
+        for _,v in pairs(plugins) do
+            if type(v.Loop) == "function" then
+                v.Loop()
+            end
+        end
+        sleep(0)
+    end
+end
+
+parallel.waitForAny(main,events,loop)
 --more code or somethin idfk i hate ni-
 
 os.pullEvent = oldPull
