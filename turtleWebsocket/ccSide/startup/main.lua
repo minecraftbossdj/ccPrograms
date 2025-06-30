@@ -170,7 +170,7 @@ end
 function events()
     while true do
         event, arg1, arg2, arg3 = os.pullEvent()
-        if event ~= "websocket_message" then
+        if event ~= "websocket_message" and event ~= "timer" then
             local tbl = {}
             tbl["event"] = event
             tbl["arg1"] = arg1
