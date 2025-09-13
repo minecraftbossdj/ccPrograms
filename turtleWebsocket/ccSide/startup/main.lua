@@ -112,6 +112,44 @@ function inspect()
     _G.WS2.send(textutils.serialiseJSON(tbl))
 end
 
+function setEnvironment(func)
+    if func == nil then
+
+    else 
+        setfenv(func,
+            {
+                pairs = pairs,
+                ipairs = ipairs,
+                print = print,
+                tonumber = tonumber,
+                tostring = tostring,
+                type = type,
+                math = math,
+                string = string,
+                table = table,
+                peripheral=peripheral,
+                turtle=turtle,
+                android=android,
+                drone=drone,
+                link=link,
+                textutils=textutils,
+                os={
+                    getComputerID=os.getComputerID,
+                    getComputerLabel=os.getComputerLabel,
+                    reboot=os.reboot
+                },
+                shell={
+                    openTab=shell.openTab,
+                    switchTab=shell.switchTab
+                },
+                exec=exec,
+                require=require
+            }
+        )
+    end
+    
+end
+
 function main()
     term.clear()
     term.setCursorPos(1,1)
@@ -126,74 +164,51 @@ function main()
     while true do
         local fake = _G.WS.receive()
         local tbl = textutils.unserialiseJSON(fake)
-        if tbl["type"] ~= nil then
-            if tbl["type"] == "function" then
-                if tonumber(tbl["id"]) == os.getComputerID() then
-                    af=loadstring("return "..tbl["msg"])
-                    setfenv(af,
-                        {
-                            pairs = pairs,
-                            ipairs = ipairs,
-                            print = print,
-                            tonumber = tonumber,
-                            tostring = tostring,
-                            type = type,
-                            math = math,
-                            string = string,
-                            table = table,
-                            peripheral=peripheral,
-                            turtle=turtle,
-                            android=android,
-                            drone=drone,
-                            link=link,
-                            textutils=textutils,
-                            os={
-                                getComputerID=os.getComputerID,
-                                getComputerLabel=os.getComputerLabel,
-                                reboot=os.reboot
-                            },
-                            shell={
-                                openTab=shell.openTab,
-                                switchTab=shell.switchTab
-                            },
-                            exec=exec,
-                            require=require
-                        }
-                    )
-                    local success, err = pcall(function()
-                        result1,result2 = af()
-                    end)
-
-                    if success then
-                        local resultTbl = {}
-                        resultTbl["type"] = "result"
-                        resultTbl["resultOne"] = result1
-                        resultTbl["resultTwo"] = result2
-                        resultTbl["id"] = os.getComputerID()
-                        result = nil
-
-                        _G.WS2.send(textutils.serialiseJSON(resultTbl))
-                    end
-                end
-            elseif tbl["type"] == "refreshInv" then
-                if tonumber(tbl["id"]) == os.getComputerID() then
-                    if turtle then
-                        inv()
-                    end
-                end
-            elseif tbl["type"] == "refreshInspect" then
-                if tonumber(tbl["id"]) == os.getComputerID() then
-                    if turtle then
-                        inspect()
-                    end
-                end
-            elseif tbl["type"] == "update" then
-                update()
-            else
-                for _,v in pairs(plugins) do
+        if type(tbl) == "table" then
+            if tbl["type"] ~= nil then
+                if tbl["type"] == "function" then
                     if tonumber(tbl["id"]) == os.getComputerID() then
-                        if type(v.WSReceive) == "function" then
-                            v.WSReceive(tbl)
+                        af=loadstring("return "..tbl["msg"])
+                        setEnvironment(af)
+                        if af == nil then
+                            af=loadstring(tbl["msg"])
+                            setEnvironment(af)
+                        end
+                        local success, err = pcall(function()
+                            result1,result2 = af()
+                        end)
+
+                        if success then
+                            local resultTbl = {}
+                            resultTbl["type"] = "result"
+                            resultTbl["resultOne"] = result1
+                            resultTbl["resultTwo"] = result2
+                            resultTbl["id"] = os.getComputerID()
+                            result = nil
+
+                            _G.WS2.send(textutils.serialiseJSON(resultTbl))
+                        end
+                    end
+                elseif tbl["type"] == "refreshInv" then
+                    if tonumber(tbl["id"]) == os.getComputerID() then
+                        if turtle then
+                            inv()
+                        end
+                    end
+                elseif tbl["type"] == "refreshInspect" then
+                    if tonumber(tbl["id"]) == os.getComputerID() then
+                        if turtle then
+                            inspect()
+                        end
+                    end
+                elseif tbl["type"] == "update" then
+                    update()
+                else
+                    for _,v in pairs(plugins) do
+                        if tonumber(tbl["id"]) == os.getComputerID() then
+                            if type(v.WSReceive) == "function" then
+                                v.WSReceive(tbl)
+                            end
                         end
                     end
                 end
@@ -204,6 +219,7 @@ function main()
 end
 
 function events()
+    local timerId = nil
     while true do
         event, arg1, arg2, arg3 = os.pullEvent()
         if event ~= "websocket_message" then
@@ -249,10 +265,19 @@ function hiddenHivemind()
     shell.run("shell")
 end
 
+function websocketRefresh()
+    while true do
+        if _G.WS.send("") ~= nil or _G.WS2.send("") ~= nil then
+            os.reboot()
+        end
+        sleep(120)
+    end
+end
+
 if hiddenHivemindConfig then
-    parallel.waitForAny(main,events,loop,hiddenHivemind)
+    parallel.waitForAny(main,events,loop,websocketRefresh,hiddenHivemind)
 else
-    parallel.waitForAny(main,events,loop)
+    parallel.waitForAny(main,events,loop,websocketRefresh)
 end
 --more code or somethin idfk
 
