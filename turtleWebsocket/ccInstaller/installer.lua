@@ -31,7 +31,7 @@ shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/ref
 
 shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/printOverwrite.lua .rom/printOverwrite.lua")
 shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/rename.lua .rom/rename.lua")
-shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/websocket.lua")
+shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/websocket.lua .rom/websocket.lua")
 
 --apis
 shell.run("wget https://raw.githubusercontent.com/minecraftbossdj/ccPrograms/refs/heads/main/turtleWebsocket/ccSide/.rom/API/newPrintAPI.lua .rom/API/newPrintAPI.lua")
