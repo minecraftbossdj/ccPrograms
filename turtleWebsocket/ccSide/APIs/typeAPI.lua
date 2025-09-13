@@ -1,7 +1,9 @@
 typeAPI = {}
 
 function typeAPI.getComputerType()
-    if turtle then
+    if turtle and link_turtle then
+        return "Link Turtle"
+    elseif turtle then
         return "Turtle"
     elseif pocket and link then
         return "Link"
@@ -11,6 +13,8 @@ function typeAPI.getComputerType()
         return "Android"
     elseif drone then
         return "Drone"
+    elseif nanodrone then
+        return "Nano Drone"
     else
         return "Computer"
     end
