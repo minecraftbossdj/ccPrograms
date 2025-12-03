@@ -1,5 +1,0 @@
-file = fs.open("AweOS/configs/quotes.txt","r")
-data = file.readAll()
-file.close()
-tbl = textutils.unserialiseJSON(data)
-print(tbl[math.random(#tbl)])
