@@ -13,8 +13,11 @@ local toDownload = {
     "AweOS/APIs/sha2.lua",
     "AweOS/APIs/thread.lua",
     "AweOS/APIs/util.lua",
+    "AweOS/programs/addThread.lua",
+    "AweOS/programs/deleteThread.lua",
     "AweOS/programs/fileExplorer.lua",
     "AweOS/programs/multishell.lua",
+    "AweOS/programs/peripheral_viewer.lua",
     "AweOS/programs/taskManager.lua",
     "AweOS/programs/aukit/aukit.lua",
     "AweOS/programs/aukit/austream.lua",
@@ -24,3 +27,4 @@ local toDownload = {
 for _, v in pairs(toDownload) do
     download(v)
 end
+
