@@ -1,17 +1,21 @@
 local Menyuu = require("APIs.Menyuu")
 local util = require("APIs.util")
 local thread = require("APIs.thread")
+_G.thread = thread
 
 _G.threads = {}
 
-function addThread(func, name, terminal)
+function addThread(func, name, terminal, cantBePaused)
+    local th = thread.new(func)
     local threadTbl = {
         name = name,
-        thread = thread.new(func),
-        paused = false
+        thread = th,
+        paused = false,
+        cantBePaused = cantBePaused or false
     }
     threadTbl.thread.terminal = terminal
     table.insert(_G.threads, threadTbl)
+    return threadTbl
 end
 
 function threadExists(name)
@@ -90,9 +94,11 @@ function goodbyeScreen()
 end
 
 function setTabThreadPaused(threadName, bool)
-    if threadExists(threadName) then
-        if not bool then getThreadByName(threadName).thread:resume("") end
-        thread.pause(getThreadByName(threadName).thread, bool)
+    if threadExists(threadName) and not getThreadByName(threadName).cantBePaused then
+        --if not bool then getThreadByName(threadName).thread:resume("") end
+        --thread.pause(getThreadByName(threadName).thread, bool)
+        --coroutine.resume(getThreadByName(threadName).thread.coroutine)
+        getThreadByName(threadName).thread:pause(bool)
         getThreadByName(threadName).paused = bool
     end
 end
@@ -109,16 +115,156 @@ function updateButtonRenderer(button)
     button.object.write(button.text)
 end
 
+function renderBar(thread, row)
+    local maxX, maxY = term.getSize()
+    term.setBackgroundColor(colors.black)
+    term.setCursorPos(1, row)
+    term.write(thread.name)
+    if thread.thread.status == "dead" then
+        paintutils.drawPixel(maxX, row, colors.red)
+    elseif thread.paused then
+        paintutils.drawPixel(maxX, row, colors.blue)
+    else
+        paintutils.drawPixel(maxX, row, colors.lime)
+    end
+    term.setBackgroundColor(colors.black)
+    --term.setCursorPos(maxX-#thread.thread.status, row)
+    --term.write(thread.thread.status)
+end
+
 function backgroundTaskManager()
-    local tasky = Menyuu.getMenuByName("taskManager")
+    local tasky = Menyuu.getMenuByName("taskviewer")
     local old = term.redirect(tasky.object)
+    
     bool, err = pcall(function()
         shell.run("AweOS/programs/taskManager.lua")
     end)
+
+    while true do
+        term.setBackgroundColor(colors.black)
+        term.clear()
+
+        local x, y = term.getSize()
+        --[[
+        term.setCursorPos(1,2)
+        term.setBackgroundColor(colors.black)
+        for i=1, x do
+            term.write("-")
+        end]]
+        
+        term.setCursorPos(1,1)
+        term.setBackgroundColor(colors.black)
+        term.write("Task Name ")
+
+        term.setCursorPos(x,1)
+        term.write("S")
+
+        term.setBackgroundColor(colors.black)
+        
+        for i, v in pairs(_G.threads) do
+            renderBar(v, i+2)
+        end
+        
+
+        tasky.object.redraw()
+        sleep()
+    end
+    term.redirect(old)
     file = fs.open("tasky_log.txt","w")
     file.write(err)
     file.close()
-    term.redirect(old)
+end
+
+local tabs = {
+    ["shell"] = {
+        tabName = "shellTab",
+        tabIcon = "S",
+        threadName = "AweOS_shell",
+        menyuuName = "shell",
+        autoThread = true,
+        menuFunction = function()
+            _G.shellWindow = Menyuu.getMenuByName("shell").object
+            local shellWin = Menyuu.getMenuByName("shell")
+            local old = term.redirect(shellWin.object)
+            shell.run("AweOS/programs/multishell.lua shellWindow")
+            term.redirect(old)
+        end,
+        y = 2
+    },
+    ["lua"] = {
+        tabName = "luaTab",
+        tabIcon = "L",
+        threadName = "AweOS_lua",
+        menyuuName = "lua",
+        autoThread = true,
+        menuFunction = function() 
+            local shellWin = Menyuu.getMenuByName("lua")
+            local old = term.redirect(shellWin.object)
+            shell.run("lua")
+            term.redirect(old)
+        end,
+        y = 3
+    },
+    ["explorer"] = {
+        tabName = "explorerTab",
+        tabIcon = "F",
+        threadName = "AweOS_explorer",
+        menyuuName = "explorer",
+        autoThread = true,
+        menuFunction = function() 
+            local explorer = Menyuu.getMenuByName("explorer")
+            local old = term.redirect(explorer.object)
+            shell.run("AweOS/programs/fileExplorer.lua")
+            term.redirect(old)
+        end,
+        y = 4
+    },
+    ["taskviewer"] = {
+        tabName = "taskyTab",
+        tabIcon = "T",
+        threadName = "AweOS_tasky",
+        menyuuName = "taskviewer",
+        autoThread = false,
+        menuFunction = function() end,
+        buttonFunction = {
+            isPressed = function()
+                if not threadExists("AweOS_tasky") then
+                    local tasky = Menyuu.getMenuByName("taskviewer")
+                    addThread(function() backgroundTaskManager() end, "AweOS_tasky", tasky.object, true)
+                end
+            end
+        },
+        cantBePaused = true,
+        y = 5
+    },
+    ["peripheralviewer"] = {
+        tabName = "periphViewerTab",
+        tabIcon = "P",
+        threadName = "AweOS_periphviewer",
+        menyuuName = "peripheralviewer",
+        autoThread = false,
+        menuFunction = function() end,
+        buttonFunction = {
+            isPressed = function()
+                if not threadExists("AweOS_periphviewer") then
+                    local periphview = Menyuu.getMenuByName("peripheralviewer")
+                    addThread(function() oldterm = term.redirect(periphview.object) shell.run("AweOS/programs/peripheral_viewer") term.redirect(oldterm) end, "AweOS_periphviewer", periphview.object, false)
+                end
+            end
+        },
+        y = 6
+    },
+    defaultTab = "shell"
+}
+
+function setOtherTabs(selfTab, bool)
+    for _, tbl in pairs(tabs) do
+        if type(tbl) == "table" then
+            if tbl.tabName ~= selfTab then
+                triggerTab(tbl.tabName, bool)
+            end
+        end
+    end 
 end
 
 function setup()
@@ -127,11 +273,44 @@ function setup()
     local sidebar = Menyuu.addMenyuu("sidebar", maxX, 1, maxX, maxY, colors.gray, true, true)
     local tskbarX, tskbarY = taskbar.object.getSize()
     Menyuu.addMenyuu("taskbar_clock", tskbarX-4, 1, tskbarX, 1, colors.white, true, true, taskbar.object, taskbar)
-    local backgroundShell = Menyuu.addMenyuu("shell", 1, 1, maxX-1, maxY-1, colors.black, true, false)
+
+    for name, tbl in pairs(tabs) do
+        if type(tbl) == "table" then
+            local menu = Menyuu.addMenyuu(tbl.menyuuName, 1, 1, maxX-1, maxY-1, colors.black, false, false)
+
+            Menyuu.addButton(tbl.tabName,tbl.tabIcon,function(button)
+                if button.pressed then
+                    setOtherTabs(tbl.tabName, false)
+                    button.object.setBackgroundColor(colors.black)
+                    setTabThreadPaused(tbl.threadName, false)
+                    if tbl.buttonFunction and tbl.buttonFunction.isPressed then
+                        tbl.buttonFunction.isPressed(button)
+                    end
+                else
+                    button.object.setBackgroundColor(colors.gray)
+                    setTabThreadPaused(tbl.threadName, true)
+                    if tbl.buttonFunction and tbl.buttonFunction.isNotPressed then
+                        tbl.buttonFunction.isPressed(button)
+                    end
+                end
+                updateButtonRenderer(button)
+                local tabMenu = Menyuu.getMenuByName(tbl.menyuuName)
+                tabMenu.object.setVisible(button.pressed or false)
+                tabMenu.object.redraw()
+                
+                if tbl.buttonFunction and tbl.buttonFunction.isNotPressed then
+                    tbl.buttonFunction.afterPressed(button)
+                end
+            end, 1, tbl.y, 1, 1, colors.gray, nil, true, true, sidebar.object, sidebar)
+        end
+    end
+
+    --[[
+    local backgroundShell = Menyuu.addMenyuu("shell", 1, 1, maxX-1, maxY-1, colors.black, false, false)
 
     local explorerMenu = Menyuu.addMenyuu("explorer", 1, 1, maxX-1, maxY-1, colors.black, false, false)
     local luaMenu = Menyuu.addMenyuu("lua", 1, 1, maxX-1, maxY-1, colors.black, false, false)
-    local tasky = Menyuu.addMenyuu("taskManager", 1, 1, maxX-1, maxY-1, colors.black, false, false)
+    local tasky = Menyuu.addMenyuu("taskManager", 1, 1, maxX-1, maxY-1, colors.black, false, false)]]
 
     local startMenu = Menyuu.addMenyuu("startMenu", 1, util.round((maxY-1)/2), util.round(maxX/6), util.round(((maxY)/2)), colors.white, false, true)
     local startMenuX, startMenuY = startMenu.object.getSize()
@@ -142,6 +321,10 @@ function setup()
         paintutils.drawFilledBox(1,startMenuY,startMenuX, startMenuY, colors.blue)
     end)
 
+    shell.setAlias("addThread", "AweOS/programs/addThread.lua")
+    shell.setAlias("killThread", "AweOS/programs/deleteThread.lua")
+
+    --[[
     Menyuu.addButton("shellTab","S",function(button)
         if button.pressed then
             triggerTab("explorerTab", false)
@@ -214,7 +397,7 @@ function setup()
         local taskyMenu = Menyuu.getMenuByName("taskManager")
         taskyMenu.object.setVisible(button.pressed)
         taskyMenu.object.redraw()
-    end, 1, 5, 1, 1, colors.gray, nil, true, true, sidebar.object, sidebar)
+    end, 1, 5, 1, 1, colors.gray, nil, true, true, sidebar.object, sidebar)]]
 
 
     --taskbar/menu buttons
@@ -323,8 +506,7 @@ function menuRenderer()
     end
 end
 
-_G.shellWindow = Menyuu.getMenuByName("shell").object
-
+--[[
 function backgroundShell()
     local shellWin = Menyuu.getMenuByName("shell")
     local old = term.redirect(shellWin.object)
@@ -344,30 +526,30 @@ function backgroundLua()
     local old = term.redirect(lua.object)
     shell.run("lua")
     term.redirect(old)
-end
+end]]
 
-function renderBar(thread, row)
-    local maxX, maxY = term.getSize()
-    term.setBackgroundColor(colors.black)
-    term.setCursorPos(1, row)
-    term.write(thread.name)
-    if thread.thread.status == "dead" then
-        paintutils.drawPixel(maxX, row, colors.red)
-    elseif thread.paused then
-        paintutils.drawPixel(maxX, row, colors.blue)
-    else
-        paintutils.drawPixel(maxX, row, colors.lime)
-    end
-    term.setBackgroundColor(colors.black)
-    term.setCursorPos(maxX-#thread.thread.status, row)
-    term.write(thread.thread.status)
-end
+
 
 bool, err = pcall(function()
     addThread(menuRenderer, "AweOS_menuRenderer")
     addThread(taskbarClockLoop, "AweOS_taskbarClockLoop")
     addThread(processClick, "AweOS_processClick")
+
+    for tabName, tab in pairs(tabs) do
+        if type(tab) == "table" then
+            local menu = Menyuu.getMenuByName(tab.menyuuName)
+
+            if menu == nil then
+                error("menu "..tab.menyuuName.." is nil!")
+            end
+            
+            if tab.autoThread then
+                addThread(tab.menuFunction, tab.threadName, menu.object)
+            end
+        end
+    end
     --tabs
+    --[[
     local explorer = Menyuu.getMenuByName("explorer")
     local shellBg = Menyuu.getMenuByName("shell")
     local luaBg = Menyuu.getMenuByName("lua")
@@ -375,9 +557,10 @@ bool, err = pcall(function()
 
     addThread(backgroundShell, "AweOS_shell", shellBg.object)
     addThread(backgroundExplorer, "AweOS_explorer", explorer.object)
-    addThread(backgroundLua, "AweOS_lua", luaBg.object)
+    addThread(backgroundLua, "AweOS_lua", luaBg.object)]]
 
-    triggerTab("shellTab", true)
+    
+    triggerTab(tabs[tabs.defaultTab].tabName, true)
 
     thread.run()
 end)
