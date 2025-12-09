@@ -365,6 +365,7 @@ function draw()
 
             fileWindow.setBackgroundColor(colors.black)
             fileWindow.clear()
+            fileWindow.setVisible(false)
 
             for i = 1, displayHeight do
                 local index = scrollOffset + i
@@ -381,7 +382,7 @@ function draw()
                     end
 
                     fileWindow.setCursorPos(1, i)
-
+                    
                     if isDir then
                         fileWindow.write("/" .. v .. "/")
                     elseif hasExtension(v) then
@@ -391,6 +392,8 @@ function draw()
                     end
                 end
             end
+            fileWindow.setVisible(true)
+            fileWindow.redraw()
 
             dirty = false
         end
