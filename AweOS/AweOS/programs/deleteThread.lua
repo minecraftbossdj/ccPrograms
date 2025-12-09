@@ -22,8 +22,10 @@ end
 
 function getThreadByName(name)
     for _, v in pairs(_G.threads) do
-        if v.name == name then
-            return v
+        if type(v) == "table" then
+            if v.name == name then
+                return v
+            end
         end
     end
 end
@@ -35,7 +37,7 @@ if not threadExists(args[1]) then error("Not a thread name!") end
 getThreadByName(args[1]).thread:kill()
 
 for i, v in pairs(_G.thread) do
-    if v.name == args[1] then
+    if type(v) == "table" and v.name == args[1] then
         table.remove(_G.thread, i)
         if _G.thread[args[1]] then
             _G.thread[args[1]] = nil
