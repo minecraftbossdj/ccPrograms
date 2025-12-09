@@ -90,7 +90,7 @@ function API.setMenyuuVisible(menyuuName, visible)
     end
     for _, v in pairs(menyuu.childMenyuus) do
         if type(v) == "table" then
-            local childMenyuu = API.getElementByName(v.name)
+            local childMenyuu = API.getMenuByName(v.name)
             if childMenyuu ~= nil then
                 childMenyuu.object.setVisible(visible)
             end
@@ -99,7 +99,7 @@ function API.setMenyuuVisible(menyuuName, visible)
 end
 
 --elements
-function API.addInput(name, x, y, width, height, bgColor, textColor, visible, parentTerm, parentMenyuu)
+function API.addInput(name, x, y, width, height, bgColor, textColor, visible, parentTerm, parentMenyuu, isParentWindow)
     if parentTerm == nil then parentTerm = term.current() end
     if textColor == nil then textColor = colors.white end
     local elementWin = window.create(parentTerm, x, y, width, height, visible)
@@ -116,15 +116,18 @@ function API.addInput(name, x, y, width, height, bgColor, textColor, visible, pa
         width = width,
         height = height,
         bgColor = bgColor,
+        textColor = textColor,
         active = false,
         object = elementWin,
         parentTerm = parentTerm,
-        parentMenyuu = parentMenyuu
+        parentMenyuu = parentMenyuu,
+        isParentWindow = isParentWindow
     }
     if parentMenyuu then
         table.insert(parentMenyuu.childElements, elementTbl)
     end
     table.insert(API.elements,elementTbl)
+    return elementTbl
 end
 
 function API.addButton(name, text, runnable, x, y, width, height, bgColor, textColor, visible, toggle, parentTerm, parentMenyuu, isParentWindow)
@@ -159,6 +162,7 @@ function API.addButton(name, text, runnable, x, y, width, height, bgColor, textC
         table.insert(parentMenyuu.childElements, elementTbl)
     end
     table.insert(API.elements,elementTbl)
+    return elementTbl
 end
 
 function API.getElementByName(name)
@@ -214,13 +218,23 @@ end
 function API.handleInput(x, y)
     local elem = API.getElementAt(x,y)
     if elem and elem.type == "input" and elem.object.isVisible() then
-        local oldterm = term.redirect(elem.object)
-        term.clear()
-        term.setCursorPos(1,1)
+        if elem.parentMenyuu and not elem.parentMenyuu.object.isVisible() then return end
+        elem.object.setBackgroundColor(elem.bgColor)
+        elem.object.clear()
+        elem.object.setBackgroundColor(elem.bgColor)
+        elem.object.setTextColor(elem.textColor)
+        elem.object.setCursorPos(1,1)
+        elem.active = true
+        local old = term.redirect(elem.object)
+        elem.object.setCursorPos(1,1)
         elem.text = read()
-        term.setCursorPos(1,1)
-        term.write(elem.text)
-        term.redirect(oldterm)
+        term.redirect(old)
+        elem.active = false
+        elem.object.setCursorBlink(false)
+        elem.object.setCursorPos(1,1)
+        elem.object.write(elem.text)
+        elem.object.setBackgroundColor(colors.black)
+        elem.object.setTextColor(colors.white)
     end
 end
 

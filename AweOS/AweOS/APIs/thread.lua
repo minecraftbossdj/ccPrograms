@@ -293,10 +293,10 @@ function _thread:resume(event, ...)
       log.debugf("Thread id %d running on-error", self.id)
       _thread.new(self.on_error_f, yielded, table.unpack(self.on_error_args, 1, self.on_error_args.n))
     end
-
+    term.redirect(prevTerm)
     return false, yielded
   end
-
+  term.redirect(prevTerm)
   return true
 end
 
