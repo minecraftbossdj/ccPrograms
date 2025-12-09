@@ -18,7 +18,6 @@ while true do
     term.setBackgroundColor(colors.black)
     term.clear()
 
-
     local x, y = term.getSize()
     
     term.setCursorPos(1,2)
@@ -42,5 +41,5 @@ while true do
     end
     
     lastCount = #_G.threads
-    sleep(0.5)
+    sleep(0)
 end
