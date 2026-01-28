@@ -1,0 +1,12 @@
+{
+    "hiddenHivemind": false,
+    "version": "v3.0.0",
+    "autoRename": true,
+    "server": "Havoc",
+    "fallbackToModem": true,
+    "forceModem": false,
+    "modemPort1": 2107,
+    "modemPort2": 2108,
+    "ip": "68.36.97.94",
+    "autoReboot": true
+}
