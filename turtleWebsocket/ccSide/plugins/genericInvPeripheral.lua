@@ -1,7 +1,7 @@
 plugin = {}
 
 
-function plugin.WSReceive(WsTbl)
+function plugin.WSReceive(WsTbl, serverName, wsmodem)
     if WsTbl["type"] == "refreshPeriphInv" then
         local inv = peripheral.wrap(WsTbl["side"])
         if inv then
@@ -9,6 +9,7 @@ function plugin.WSReceive(WsTbl)
             tbl["type"] = "periphInv"
             tbl["id"] = os.getComputerID()
             tbl["invData"] = {}
+            tbl["server"] = serverName
 
             local size = inv.size()
             local contents = inv.list()
@@ -26,7 +27,7 @@ function plugin.WSReceive(WsTbl)
                 end
             end
 
-            _G.WS2.send(textutils.serialiseJSON(tbl))
+            wsmodem.WS2.send(textutils.serialiseJSON(tbl))
         end
     end
 end
