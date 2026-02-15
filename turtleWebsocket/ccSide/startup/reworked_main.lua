@@ -65,7 +65,7 @@ end
 
 for _,v in pairs(plugins) do
     if type(v.init) == "function" then
-        v.init()
+        v.init(serverName, wsmodem)
     end
 end
 
@@ -235,7 +235,7 @@ local function main()
             else
                 for _,v in pairs(plugins) do
                     if type(v.WSReceive) == "function" then
-                        v.WSReceive(infoTbl, serverName, wsmodem)
+                        v.WSReceive(infoTbl)
                     end
                 end
             end
