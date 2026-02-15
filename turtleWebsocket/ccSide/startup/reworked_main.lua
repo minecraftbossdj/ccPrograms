@@ -235,7 +235,7 @@ local function main()
             else
                 for _,v in pairs(plugins) do
                     if type(v.WSReceive) == "function" then
-                        v.WSReceive(infoTbl)
+                        v.WSReceive(infoTbl, serverName, wsmodem)
                     end
                 end
             end
